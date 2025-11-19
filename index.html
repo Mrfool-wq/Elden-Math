@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace Calculator - Elden Ring Math Solver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(135deg, #040200 0%, #27170d 50%, #040200 100%);
+            color: #f9c043;
+            min-height: 100vh;
+            padding: 20px;
+            background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(185, 103, 7, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(249, 192, 67, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, rgba(39, 23, 13, 0.95), rgba(4, 2, 0, 0.98));
+            border: 3px solid #bd6707;
+            border-radius: 15px;
+            box-shadow: 
+                0 0 40px rgba(189, 103, 7, 0.6),
+                inset 0 0 60px rgba(0, 0, 0, 0.8),
+                0 0 100px rgba(249, 192, 67, 0.3);
+            padding: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(189, 103, 7, 0.02) 2px,
+                rgba(189, 103, 7, 0.02) 4px
+            );
+            pointer-events: none;
+            border-radius: 12px;
+        }
+
+        .grace-symbol {
+            text-align: center;
+            font-size: 3em;
+            color: #f9c043;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 20px rgba(249, 192, 67, 0.8),
+                0 0 40px rgba(189, 103, 7, 0.6);
+            animation: gracePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gracePulse {
+            0%, 100% {
+                text-shadow: 
+                    0 0 20px rgba(249, 192, 67, 0.8),
+                    0 0 40px rgba(189, 103, 7, 0.6);
+            }
+            50% {
+                text-shadow: 
+                    0 0 30px rgba(249, 192, 67, 1),
+                    0 0 60px rgba(189, 103, 7, 0.8),
+                    0 0 80px rgba(249, 192, 67, 0.4);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            color: #f9c043;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.9),
+                0 0 30px rgba(249, 192, 67, 0.5);
+            margin-bottom: 12px;
+            letter-spacing: 3px;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: #bd6707;
+            font-style: italic;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 0.95em;
+            color: #653815;
+            letter-spacing: 4px;
+            margin-top: 12px;
+            text-transform: uppercase;
+        }
+
+        .input-section {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.15em;
+            color: #f9c043;
+            margin-bottom: 12px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.2em;
+            background: rgba(4, 2, 0, 0.7);
+            border: 2px solid #653815;
+            border-radius: 8px;
+            color: #f9c043;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #bd6707;
+            background: rgba(4, 2, 0, 0.9);
+            box-shadow: 
+                0 0 20px rgba(189, 103, 7, 0.5),
+                inset 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px 30px;
+            font-size: 1.15em;
+            font-weight: normal;
+            background: linear-gradient(to bottom, #bd6707, #653815);
+            color: #f9c043;
+            border: 2px solid #27170d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 
+                0 4px 10px rgba(0, 0, 0, 0.6),
+                0 0 15px rgba(189, 103, 7, 0.3);
+            font-family: 'Georgia', serif;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #f9c043, #bd6707);
+            box-shadow: 
+                0 0 30px rgba(249, 192, 67, 0.6),
+                0 4px 10px rgba(0, 0, 0, 0.6);
+            transform: translateY(-2px);
+            color: #27170d;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .clear-btn {
+            background: linear-gradient(to bottom, #653815, #27170d);
+        }
+
+        .clear-btn:hover {
+            background: linear-gradient(to bottom, #bd6707, #653815);
+            color: #f9c043;
+        }
+
+        .examples {
+            background: rgba(39, 23, 13, 0.6);
+            border: 1px solid #653815;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 28px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .examples h3 {
+            color: #f9c043;
+            margin-bottom: 12px;
+            font-size: 1.15em;
+            letter-spacing: 1px;
+        }
+
+        .examples ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .examples li {
+            color: #bd6707;
+            margin: 6px 0;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .examples li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #f9c043;
+            text-shadow: 0 0 8px rgba(249, 192, 67, 0.6);
+        }
+
+        .result-section {
+            background: rgba(4, 2, 0, 0.8);
+            border: 2px solid #bd6707;
+            border-radius: 8px;
+            padding: 25px;
+            min-height: 150px;
+            display: none;
+            box-shadow: 
+                0 0 30px rgba(189, 103, 7, 0.4),
+                inset 0 2px 12px rgba(0, 0, 0, 0.7);
+        }
+
+        .result-section.show {
+            display: block;
+            animation: graceReveal 0.6s ease;
+        }
+
+        @keyframes graceReveal {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-size: 1.4em;
+            color: #f9c043;
+            margin-bottom: 18px;
+            text-align: center;
+            text-shadow: 
+                1px 1px 3px rgba(0, 0, 0, 0.9),
+                0 0 20px rgba(249, 192, 67, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .result-content {
+            background: rgba(39, 23, 13, 0.5);
+            padding: 22px;
+            border-radius: 8px;
+            border: 1px solid #653815;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .answer {
+            font-size: 1.9em;
+            color: #f9c043;
+            text-align: center;
+            margin: 22px 0;
+            padding: 18px;
+            background: rgba(189, 103, 7, 0.15);
+            border-radius: 8px;
+            border: 2px solid #bd6707;
+            font-family: 'Courier New', monospace;
+            word-wrap: break-word;
+            box-shadow: 
+                0 0 20px rgba(189, 103, 7, 0.3),
+                inset 0 2px 8px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 10px rgba(249, 192, 67, 0.3);
+        }
+
+        .steps {
+            margin-top: 22px;
+        }
+
+        .steps h4 {
+            color: #bd6707;
+            margin-bottom: 12px;
+            font-size: 1.15em;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .step {
+            background: rgba(39, 23, 13, 0.5);
+            padding: 14px;
+            margin: 10px 0;
+            border-left: 3px solid #f9c043;
+            border-radius: 5px;
+            color: #bd6707;
+            line-height: 1.7;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .step strong {
+            color: #f9c043;
+        }
+
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 18px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff6b6b;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 35px;
+            color: #653815;
+            font-size: 0.95em;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .grace-symbol {
+                font-size: 2.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .container {
+                padding: 25px;
+            }
+        }
+
+        /* Floating particles effect */
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: #f9c043;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 8s infinite;
+            box-shadow: 0 0 8px rgba(249, 192, 67, 0.8);
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(20px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating grace particles -->
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 3s;"></div>
+
+    <div class="container">
+        <div class="grace-symbol">✦</div>
+        <div class="header">
+            <h1>GRACE CALCULATOR</h1>
+            <div class="subtitle">Blessed by the Golden Order</div>
+            <div class="tagline">Rise, Tarnished Mathematician</div>
+        </div>
+
+        <div class="input-section">
+            <label for="equation">Enter Thy Mathematical Challenge:</label>
+            <div class="input-wrapper">
+                <input type="text" id="equation" placeholder="e.g., 2x + 5 = 13 or sqrt(144) + 5^2" autocomplete="off">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="solveEquation()">Solve</button>
+            <button class="clear-btn" onclick="clearAll()">Clear</button>
+        </div>
+
+        <div class="examples">
+            <h3>Examples of Grace-Blessed Operations:</h3>
+            <ul>
+                <li>Basic Arithmetic: 5 + 3 * 2, (10 - 5) / 2</li>
+                <li>Powers & Roots: 2^10, sqrt(256), cbrt(27)</li>
+                <li>Trigonometry: sin(90 deg), cos(pi), tan(45 deg)</li>
+                <li>Logarithms: log(100), log(8, 2), ln(e)</li>
+                <li>Derivatives: derivative('x^2 + 3x', 'x')</li>
+                <li>Matrices: [1, 2; 3, 4] * [5; 6]</li>
+                <li>Complex Numbers: (2 + 3i) * (1 - i)</li>
+                <li>Statistics: mean([1, 2, 3, 4, 5]), std([10, 20, 30])</li>
+            </ul>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-title">The Elden Ring Has Spoken</div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+
+        <div class="footer">
+            "O Tarnished, thy calculations art flawless. The Greater Will smiles upon thee."
+        </div>
+    </div>
+
+    <script>
+        const resultSection = document.getElementById('resultSection');
+        const resultContent = document.getElementById('resultContent');
+        const equationInput = document.getElementById('equation');
+
+        // Allow Enter key to solve
+        equationInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                solveEquation();
+            }
+        });
+
+        function solveEquation() {
+            const input = equationInput.value.trim();
+            
+            if (!input) {
+                showError("The Lands Between require an equation to solve!");
+                return;
+            }
+
+            try {
+                let result;
+                let steps = [];
+                
+                // Check if it's an equation (contains =)
+                if (input.includes('=')) {
+                    result = solveAlgebraicEquation(input, steps);
+                } else {
+                    // Direct evaluation
+                    result = math.evaluate(input);
+                    steps.push(`Original expression: ${input}`);
+                    steps.push(`Evaluating the expression through the guidance of Grace...`);
+                    
+                    // Add specific steps based on operation type
+                    addEvaluationSteps(input, steps);
+                    
+                    steps.push(`Final result blessed by the Golden Order: ${formatResult(result)}`);
+                }
+                
+                displayResult(result, steps);
+                
+            } catch (error) {
+                showError(`Thy equation hath been cursed by the Rune of Death: ${error.message}`);
+            }
+        }
+
+        function solveAlgebraicEquation(equation, steps) {
+            steps.push(`Original equation: ${equation}`);
+            
+            // Split by = sign
+            const parts = equation.split('=');
+            if (parts.length !== 2) {
+                throw new Error("Invalid equation format. Use format: expression = value");
+            }
+            
+            const leftSide = parts[0].trim();
+            const rightSide = parts[1].trim();
+            
+            steps.push(`Left side: ${leftSide}`);
+            steps.push(`Right side: ${rightSide}`);
+            
+            // Try to identify the variable
+            const variables = leftSide.match(/[a-z]/gi);
+            if (!variables || variables.length === 0) {
+                // No variable, just evaluate both sides
+                const leftVal = math.evaluate(leftSide);
+                const rightVal = math.evaluate(rightSide);
+                steps.push(`Evaluating left side: ${leftVal}`);
+                steps.push(`Evaluating right side: ${rightVal}`);
+                
+                if (Math.abs(leftVal - rightVal) < 0.0001) {
+                    steps.push(`Both sides art equal! Grace shines upon this truth.`);
+                    return `Equation is TRUE: ${leftVal} = ${rightVal}`;
+                } else {
+                    steps.push(`The sides art not equal.`);
+                    return `Equation is FALSE: ${leftVal} ≠ ${rightVal}`;
+                }
+            }
+            
+            const variable = variables[0];
+            steps.push(`Seeking the variable through Grace: ${variable}`);
+            
+            // Create equation: leftSide - rightSide = 0
+            const equation_str = `${leftSide} - (${rightSide})`;
+            steps.push(`Rearranging by the Golden Order: ${equation_str} = 0`);
+            
+            // Try simple linear equation first
+            try {
+                // For linear equations like 2x + 5 = 13
+                const leftVal = math.evaluate(leftSide, {[variable]: 0});
+                const leftVal1 = math.evaluate(leftSide, {[variable]: 1});
+                const rightVal = math.evaluate(rightSide);
+                
+                const slope = leftVal1 - leftVal;
+                
+                if (Math.abs(slope) > 0.0001) {
+                    // Linear equation
+                    const solution = (rightVal - leftVal) / slope;
+                    steps.push(`This is a linear equation, blessed by simplicity`);
+                    steps.push(`Using algebraic methods to isolate ${variable}...`);
+                    steps.push(`Solution revealed by Grace: ${variable} = ${solution}`);
+                    
+                    // Verify
+                    const verification = math.evaluate(leftSide, {[variable]: solution});
+                    steps.push(`Verification: ${leftSide.replace(new RegExp(variable, 'g'), `(${solution})`)} = ${verification}`);
+                    
+                    return `${variable} = ${formatResult(solution)}`;
+                }
+            } catch (e) {
+                // Continue to more complex solving
+            }
+            
+            // For more complex equations, try numerical methods
+            steps.push(`Using ancient numerical methods for this complex challenge...`);
+            
+            // Try to solve using symbolic computation
+            try {
+                // Create simplified expression
+                const expr = math.simplify(`${leftSide} - (${rightSide})`);
+                steps.push(`Simplified form by the Erdtree: ${expr.toString()} = 0`);
+                
+                // Try different values to find solution
+                let solutions = [];
+                for (let testVal = -100; testVal <= 100; testVal += 0.5) {
+                    try {
+                        const result = math.evaluate(equation_str, {[variable]: testVal});
+                        if (Math.abs(result) < 0.01) {
+                            // Check if we already have a similar solution
+                            const isDuplicate = solutions.some(sol => Math.abs(sol - testVal) < 0.1);
+                            if (!isDuplicate) {
+                                solutions.push(testVal);
+                            }
+                        }
+                    } catch (e) {}
+                }
+                
+                if (solutions.length > 0) {
+                    steps.push(`Found ${solutions.length} solution(s) through the wisdom of the Two Fingers`);
+                    solutions.forEach((sol, idx) => {
+                        steps.push(`Solution ${idx + 1}: ${variable} = ${formatResult(sol)}`);
+                    });
+                    
+                    if (solutions.length === 1) {
+                        return `${variable} = ${formatResult(solutions[0])}`;
+                    } else {
+                        return solutions.map((sol, idx) => `${variable}${idx + 1} = ${formatResult(sol)}`).join(', ');
+                    }
+                }
+                
+            } catch (e) {
+                steps.push(`Error in symbolic solving: ${e.message}`);
+            }
+            
+            throw new Error("Could not find a solution. The path forward is obscured by shadow.");
+        }
+
+        function addEvaluationSteps(input, steps) {
+            try {
+                // Check for specific operations
+                if (input.includes('sqrt')) {
+                    steps.push(`Calculating square root through ancient runes...`);
+                } else if (input.includes('cbrt')) {
+                    steps.push(`Calculating cube root through the power of the Elden Ring...`);
+                } else if (input.includes('^')) {
+                    steps.push(`Calculating exponentiation with grace-given strength...`);
+                } else if (input.includes('sin') || input.includes('cos') || input.includes('tan')) {
+                    steps.push(`Calculating trigonometric function by the stars above...`);
+                } else if (input.includes('log') || input.includes('ln')) {
+                    steps.push(`Calculating logarithm through scholarly wisdom...`);
+                } else if (input.includes('derivative')) {
+                    steps.push(`Computing derivative with the precision of a keen blade...`);
+                } else if (input.includes('mean') || input.includes('median') || input.includes('std')) {
+                    steps.push(`Calculating statistical measure through careful observation...`);
+                } else if (input.includes('[') && input.includes(']')) {
+                    steps.push(`Performing matrix operation with geometric precision...`);
+                } else if (input.includes('i') && (input.includes('+') || input.includes('-'))) {
+                    steps.push(`Calculating complex number operation through mystical means...`);
+                } else {
+                    steps.push(`Performing arithmetic calculation...`);
+                    if (input.includes('*') || input.includes('/')) {
+                        steps.push(`First handling multiplication/division as commanded by order...`);
+                    }
+                    if (input.includes('+') || input.includes('-')) {
+                        steps.push(`Then handling addition/subtraction with care...`);
+                    }
+                }
+            } catch (e) {
+                // Ignore step errors
+            }
+        }
+
+        function formatResult(result) {
+            if (typeof result === 'number') {
+                // Round to reasonable precision
+                if (Math.abs(result - Math.round(result)) < 0.0001) {
+                    return Math.round(result).toString();
+                }
+                return parseFloat(result.toFixed(8)).toString();
+            }
+            return math.format(result, {precision: 14});
+        }
+
+        function displayResult(result, steps) {
+            resultSection.classList.add('show');
+            
+            let html = `
+                <div class="answer">
+                    ${formatResult(result)}
+                </div>
+                <div class="steps">
+                    <h4>✦ Path to Solution ✦</h4>
+            `;
+            
+            steps.forEach((step, index) => {
+                html += `<div class="step"><strong>Step ${index + 1}:</strong> ${step}</div>`;
+            });
+            
+            html += `</div>`;
+            resultContent.innerHTML = html;
+            
+            // Scroll to result
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showError(message) {
+            resultSection.classList.add('show');
+            resultContent.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function clearAll() {
+            equationInput.value = '';
+            resultSection.classList.remove('show');
+            resultContent.innerHTML = '';
+            equationInput.focus();
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            equationInput.focus();
+        };
+    </script>
+</body>
+</html>
